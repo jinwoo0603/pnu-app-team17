@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.pnu_app_team17"
-        minSdk = 25
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -46,6 +46,7 @@ dependencies {
     implementation("com.google.firebase:firebase-bom:33.13.0")
     implementation("com.google.firebase:firebase-analytics-ktx:22.4.0")
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
