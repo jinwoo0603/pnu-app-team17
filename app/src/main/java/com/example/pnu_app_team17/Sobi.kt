@@ -13,13 +13,12 @@ object Sobi {
 
     // 소비 기록 추가
     fun add(context: Context, date: LocalDate, category: String, amount: Int) {
-        if (!Auth.isLoggedIn(context)) {
-            Toast.makeText(context, "로그인 오류", Toast.LENGTH_SHORT).show()
+        val db = FirebaseFirestore.getInstance()
+        //로그인 여부 검증 및 현재 아이디 가져오기
+        val id = Auth.currentId(context) ?: run {
+            Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
         }
-
-        val db = FirebaseFirestore.getInstance()
-        val id = Auth.currentId(context) ?: return
 
         val sobi = hashMapOf(
             "id" to id,
@@ -58,8 +57,6 @@ object Sobi {
     //    Log.d("Top 카테고리", topCats.toString())
     //}
     suspend fun get(context: Context): List<SobiItem> {
-        if (!Auth.isLoggedIn(context)) return emptyList()
-
         val db = FirebaseFirestore.getInstance()
         val id = Auth.currentId(context) ?: return emptyList()
 
