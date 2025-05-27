@@ -7,9 +7,10 @@ import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import com.example.pnu_app_team17.Category
+
 object Sobi {
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    private val monthFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
     // 소비 기록 추가
     fun add(context: Context, date: LocalDate, category: String, amount: Int) {
@@ -17,6 +18,10 @@ object Sobi {
         //로그인 여부 검증 및 현재 아이디 가져오기
         val id = Auth.currentId(context) ?: run {
             Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (Category.values().none { it.tag == category }) {
+            Toast.makeText(context, "유효하지 않은 카테고리입니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
