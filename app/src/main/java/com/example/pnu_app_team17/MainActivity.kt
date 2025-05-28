@@ -77,9 +77,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, ReceiptAddActivity::class.java)
             startActivity(intent)
         }
-        // 버튼 클릭 이벤트 (예시로 토스트만 출력)
-        findViewById<Button>(R.id.buttonGoal).setOnClickListener {
-            Toast.makeText(this, "목표 설정 페이지로 이동", Toast.LENGTH_SHORT).show()
+        // 얘는 코드 이미 연결 시킴
+        val buttonGoal = findViewById<Button>(R.id.buttonGoal)
+        buttonGoal.setOnClickListener {
+            val intent = Intent(this, GoalSettingActivity::class.java)
+            startActivity(intent)
         }
+
     }
 }
