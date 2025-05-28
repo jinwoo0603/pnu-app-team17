@@ -22,6 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SpendingHistoryActivity" />
+        <activity android:name=".ReceiptAddActivity" />
     </application>
 
 </manifest>
