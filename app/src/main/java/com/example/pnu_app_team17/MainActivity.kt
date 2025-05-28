@@ -65,10 +65,13 @@ class MainActivity : AppCompatActivity() {
         val warningText = findViewById<TextView>(R.id.warningText)
         warningText.text = "이번달에는\n- 교통\n- 카페\n- 배달\n항목에서 예상보다 많은 지출을 했습니다."
 
-        // 버튼 클릭 이벤트 (예시로 토스트만 출력)
-        findViewById<Button>(R.id.buttonHistory).setOnClickListener {
-            Toast.makeText(this, "소비 내역 페이지로 이동", Toast.LENGTH_SHORT).show()
+        // 얘는 코드 이미 연결 시킴
+        val buttonHistory = findViewById<Button>(R.id.buttonHistory)
+        buttonHistory.setOnClickListener {
+            val intent = Intent(this, SpendingHistoryActivity::class.java)
+            startActivity(intent)
         }
+        // 버튼 클릭 이벤트 (예시로 토스트만 출력)
         findViewById<Button>(R.id.buttonAdd).setOnClickListener {
             Toast.makeText(this, "소비 추가 페이지로 이동", Toast.LENGTH_SHORT).show()
         }
