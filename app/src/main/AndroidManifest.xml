@@ -24,6 +24,7 @@
         <activity android:name=".SpendingHistoryActivity" />
         <activity android:name=".ReceiptAddActivity" />
         <activity android:name=".GoalSettingActivity" />
+        <activity android:name=".LoginActivity" />
 
     </application>
 
