@@ -21,6 +21,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".SpendingHistoryActivity" />
+        <activity android:name=".ReceiptAddActivity" />
+        <activity android:name=".GoalSettingActivity" />
+
     </application>
 
 </manifest>
