@@ -60,13 +60,6 @@ object GPT {
 
     // 영수증 OCR 처리 메서드
     suspend fun ocr(context: Context, text: String): String = withContext(Dispatchers.IO) {
-        val id = Auth.currentId(context) ?: run {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-            }
-            return@withContext "로그인이 필요합니다."
-        }
-
         val categoryList = Category.values().joinToString(", ") { it.tag }
 
         val prompt = """
@@ -75,7 +68,7 @@ object GPT {
             $text
             
             각 소비 내역을 다음 JSON 형식의 배열로 정리해주세요:
-            { "id": "$id", "date": 날짜, "category": ($categoryList 중 하나), "amount": 금액 }
+            { "date": 날짜, "category": ($categoryList 중 하나), "amount": 금액 }
         """.trimIndent()
 
         return@withContext try {
