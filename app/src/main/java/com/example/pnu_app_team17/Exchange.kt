@@ -40,7 +40,7 @@ object Exchange {
 
     //
     //Exchange.get(context, LocalDate.now(), CurUnit.USD) 이런식으로 사용
-    suspend fun get(context: Context, searchdate: LocalDate, curUnit: CurUnit): Int {
+    suspend fun get(context: Context, searchdate: LocalDate, curUnit: CurUnit, foreignAmount: Double): Int {
         val prefs = getPrefs(context)
         val storedDate = prefs.getString(EXCHANGE_DATE_KEY, null)
         val targetDate = searchdate.format(dateFormatter)
@@ -55,7 +55,15 @@ object Exchange {
         for (i in 0 until jsonArray.length()) {
             val obj = jsonArray.getJSONObject(i)
             if (obj.getString("cur_unit") == curUnit.unit) {
-                return obj.getString("kftc_bkpr").replace(",", "").toInt()
+                val rateStr = obj.getString("kftc_bkpr").replace(",", "")
+                val rate = rateStr.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid rate")
+
+                // 100 단위인지 확인
+                val isPerHundred = curUnit.unit.contains("(100)")
+                val baseAmount = if (isPerHundred) foreignAmount / 100 else foreignAmount
+
+                val result = (baseAmount * rate).toInt()
+                return result
             }
         }
 
