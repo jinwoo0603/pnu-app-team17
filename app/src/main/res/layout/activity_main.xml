@@ -31,15 +31,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
-    <!-- 경고 문구 -->
+    <!-- 경고 문구 (동적으로 변경됨) -->
     <TextView
         android:id="@+id/warningText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"
-        android:text="이달에는 교통, 카페, 배달 항목에서 초과 지출하였습니다."
+        android:textColor="@android:color/holo_red_dark"
+        android:text="경고 문구 로딩 중..."
         app:layout_constraintTop_toBottomOf="@id/pieChart"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -76,15 +76,11 @@
             android:layout_height="wrap_content"
             android:text="목표 설정"/>
 
-        <!-- 리셋버튼! 삭제해야함 -->
         <Button
             android:id="@+id/buttonReset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="초기화"
             android:layout_marginTop="12dp"/>
-
-
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
