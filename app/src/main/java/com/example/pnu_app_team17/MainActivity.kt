@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -79,5 +80,23 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.buttonGoal).setOnClickListener {
             startActivity(Intent(this, GoalSettingActivity::class.java))
         }
+
+        // !!! 리셋버튼 , 삭제예정
+        findViewById<Button>(R.id.buttonReset).setOnClickListener {
+            // 소비 금액 초기화
+            val spendPrefs = getSharedPreferences("spending_prefs", MODE_PRIVATE)
+            spendPrefs.edit().putInt("total_spent", 0).apply()
+
+            // 목표 금액 초기화
+            val goalPrefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
+            goalPrefs.edit().putInt("total_goal", 0).apply()
+
+            // 화면에 반영 (UI 텍스트 갱신)
+            val budgetText = findViewById<TextView>(R.id.budgetText)
+            budgetText.text = "목표 소비액 : 0원\n실제 소비액 : 0원"
+
+            Toast.makeText(this, "소비 금액과 목표 금액이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+        }
+
     }
 }

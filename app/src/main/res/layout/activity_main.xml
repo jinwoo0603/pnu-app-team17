@@ -75,6 +75,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="목표 설정"/>
+
+        <!-- 리셋버튼! 삭제해야함 -->
+        <Button
+            android:id="@+id/buttonReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="초기화"
+            android:layout_marginTop="12dp"/>
+
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
