@@ -1,6 +1,9 @@
 package com.example.pnu_app_team17
 
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -11,15 +14,10 @@ import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-import android.widget.Button
-import android.widget.Toast
-import android.content.Intent
-import android.graphics.Color
 
 class MainActivity : AppCompatActivity() {
 
-    private val goalAmount = 500_000
-    private val actualAmount = 180_100
+    private var actualAmount = 180_100  // 실제 소비액은 예시로 하드코딩되어 있음 (나중에 동적 연동 가능)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,11 +30,15 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // SharedPreferences에서 목표 금액 불러오기 (없으면 0)
+        val prefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
+        val goalAmount = prefs.getInt("total_goal", 0)
+
         // 소비 금액 텍스트 설정
         val budgetText = findViewById<TextView>(R.id.budgetText)
         budgetText.text = "목표 소비액 : %,d원\n실제 소비액 : %,d원".format(goalAmount, actualAmount)
 
-        // 원형 차트 설정
+        // 원형 차트 설정 (예시)
         val pieChart = findViewById<PieChart>(R.id.pieChart)
         val entries = listOf(
             PieEntry(40f, "식비"),
@@ -53,7 +55,6 @@ class MainActivity : AppCompatActivity() {
                 Color.parseColor("#4CAF50")
             )
         )
-
         val data = PieData(dataSet)
         pieChart.data = data
         pieChart.description = Description().apply { text = "" }
@@ -61,28 +62,21 @@ class MainActivity : AppCompatActivity() {
         pieChart.animateY(1000)
         pieChart.invalidate()
 
-        // 경고 문구
+        // 경고 문구 (임시 고정)
         val warningText = findViewById<TextView>(R.id.warningText)
         warningText.text = "이번달에는\n- 교통\n- 카페\n- 배달\n항목에서 예상보다 많은 지출을 했습니다."
 
-        // 얘는 코드 이미 연결 시킴
-        val buttonHistory = findViewById<Button>(R.id.buttonHistory)
-        buttonHistory.setOnClickListener {
-            val intent = Intent(this, SpendingHistoryActivity::class.java)
-            startActivity(intent)
-        }
-        // 얘는 코드 이미 연결 시킴
-        val buttonAdd = findViewById<Button>(R.id.buttonAdd)
-        buttonAdd.setOnClickListener {
-            val intent = Intent(this, ReceiptAddActivity::class.java)
-            startActivity(intent)
-        }
-        // 얘는 코드 이미 연결 시킴
-        val buttonGoal = findViewById<Button>(R.id.buttonGoal)
-        buttonGoal.setOnClickListener {
-            val intent = Intent(this, GoalSettingActivity::class.java)
-            startActivity(intent)
+        // 버튼들 이벤트 연결
+        findViewById<Button>(R.id.buttonHistory).setOnClickListener {
+            startActivity(Intent(this, SpendingHistoryActivity::class.java))
         }
 
+        findViewById<Button>(R.id.buttonAdd).setOnClickListener {
+            startActivity(Intent(this, ReceiptAddActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.buttonGoal).setOnClickListener {
+            startActivity(Intent(this, GoalSettingActivity::class.java))
+        }
     }
 }
