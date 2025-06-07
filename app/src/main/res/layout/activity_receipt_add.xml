@@ -40,5 +40,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="갤러리에서 영수증 가져오기" />
+    <!-- 버튼: 임의 소비 추가 -->
+    <Button
+        android:id="@+id/buttonDummyAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="임의 소비 추가"
+        android:layout_marginTop="24dp"/>
 
 </LinearLayout>
