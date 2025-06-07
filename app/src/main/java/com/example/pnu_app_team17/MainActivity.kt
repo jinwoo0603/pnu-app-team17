@@ -10,13 +10,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var pieChart: PieChart
+    private lateinit var budgetText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,46 +34,23 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // 목표 금액, 실제 소비 금액 SharedPreferences에서 불러오기
+        pieChart = findViewById(R.id.pieChart)
+        budgetText = findViewById(R.id.budgetText)
+
         val goalPrefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
         val goalAmount = goalPrefs.getInt("total_goal", 0)
 
         val spendPrefs = getSharedPreferences("spending_prefs", MODE_PRIVATE)
         val actualAmount = spendPrefs.getInt("total_spent", 0)
 
-        // 텍스트뷰 표시
-        val budgetText = findViewById<TextView>(R.id.budgetText)
         budgetText.text = "목표 소비액 : %,d원\n실제 소비액 : %,d원".format(goalAmount, actualAmount)
 
-        // 파이 차트 예시 (하드코딩)
-        val pieChart = findViewById<PieChart>(R.id.pieChart)
-        val entries = listOf(
-            PieEntry(40f, "식비"),
-            PieEntry(20f, "교통비"),
-            PieEntry(15f, "카페"),
-            PieEntry(25f, "배달")
-        )
-        val dataSet = PieDataSet(entries, "소비 분석")
-        dataSet.setColors(
-            listOf(
-                Color.parseColor("#A5D6A7"),
-                Color.parseColor("#81C784"),
-                Color.parseColor("#66BB6A"),
-                Color.parseColor("#4CAF50")
-            )
-        )
-        val data = PieData(dataSet)
-        pieChart.data = data
-        pieChart.description = Description().apply { text = "" }
-        pieChart.centerText = "소비 분석"
-        pieChart.animateY(1000)
-        pieChart.invalidate()
+        // 실제 소비 데이터로 파이차트 표시
+        lifecycleScope.launch {
+            val items = Sobi.get(this@MainActivity)
+            showPieChart(items)
+        }
 
-        // 경고 문구 (고정)
-        val warningText = findViewById<TextView>(R.id.warningText)
-        warningText.text = "이번달에는\n- 교통\n- 카페\n- 배달\n항목에서 예상보다 많은 지출을 했습니다."
-
-        // 버튼 이벤트
         findViewById<Button>(R.id.buttonHistory).setOnClickListener {
             startActivity(Intent(this, SpendingHistoryActivity::class.java))
         }
@@ -80,23 +62,58 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.buttonGoal).setOnClickListener {
             startActivity(Intent(this, GoalSettingActivity::class.java))
         }
-
-        // !!! 리셋버튼 , 삭제예정
+        
+        
+        // ### 리셋 버튼 , 삭제 예정
         findViewById<Button>(R.id.buttonReset).setOnClickListener {
-            // 소비 금액 초기화
             val spendPrefs = getSharedPreferences("spending_prefs", MODE_PRIVATE)
             spendPrefs.edit().putInt("total_spent", 0).apply()
 
-            // 목표 금액 초기화
             val goalPrefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
             goalPrefs.edit().putInt("total_goal", 0).apply()
 
-            // 화면에 반영 (UI 텍스트 갱신)
-            val budgetText = findViewById<TextView>(R.id.budgetText)
             budgetText.text = "목표 소비액 : 0원\n실제 소비액 : 0원"
+            pieChart.clear()
+            pieChart.centerText = "소비 비율 없음"
+            Toast.makeText(this, "초기화 완료", Toast.LENGTH_SHORT).show()
+        }
+    }
 
-            Toast.makeText(this, "소비 금액과 목표 금액이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+    private fun showPieChart(items: List<SobiItem>) {
+        val proportions = items.categoryProportions()
+        if (proportions.isEmpty()) {
+            pieChart.clear()
+            pieChart.centerText = "소비 비율 없음"
+            return
         }
 
+        val entries = proportions.map { (category, percent) ->
+            PieEntry(percent.toFloat(), category)
+        }
+
+        val dataSet = PieDataSet(entries, "카테고리별 소비").apply {
+            sliceSpace = 2f
+            valueTextSize = 12f
+            colors = listOf(
+                Color.parseColor("#FFA726"), // 주황
+                Color.parseColor("#66BB6A"), // 녹색
+                Color.parseColor("#42A5F5"), // 파랑
+                Color.parseColor("#EF5350"), // 빨강
+                Color.parseColor("#AB47BC")  // 보라
+            )
+        }
+
+        val data = PieData(dataSet)
+
+        pieChart.apply {
+            this.data = data
+            description = Description().apply { text = "" }
+            isDrawHoleEnabled = true
+            setEntryLabelColor(Color.BLACK)
+            setUsePercentValues(true)
+            centerText = "소비 분석"
+            animateY(1000)
+            invalidate()
+        }
     }
 }
