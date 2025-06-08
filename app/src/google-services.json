@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "991728448635",
+    "project_id": "pnu-app-team17",
+    "storage_bucket": "pnu-app-team17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991728448635:android:02afb61bfb5c373b5e1ede",
+        "android_client_info": {
+          "package_name": "com.example.pnu_app_team17"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBC5v4xAMZkglvmcKhjTwr7Exq411oK8ys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
