@@ -1,10 +1,15 @@
 package com.example.pnu_app_team17
 
 import android.content.Context
+import android.widget.Toast
+import android.util.Log
 import com.example.pnu_app_team17.Sobi
 import com.example.pnu_app_team17.filterByMonth
 import com.example.pnu_app_team17.toCsvString
 import com.example.pnu_app_team17.categoryProportions
+import com.example.pnu_app_team17.Category
+import com.google.firebase.firestore.FirebaseFirestore
+import org.json.JSONArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
@@ -14,6 +19,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 object GPT {
     private const val OPENAI_API_KEY = "your-api-key" // TODO: API 키 넣을것
@@ -52,7 +58,53 @@ object GPT {
         }
     }
 
-    // TODO: 카테고리 종류가 확정되면 영수증 OCR 처리 메서드 만들것
+    // 영수증 OCR 처리 메서드
+    suspend fun ocr(context: Context, text: String): String = withContext(Dispatchers.IO) {
+        val categoryList = Category.values().joinToString(", ") { it.tag }
+
+        val prompt = """
+            다음은 사용자의 영수증 사진에서 OCR을 통해 추출한 텍스트입니다.
+            
+            $text
+            
+            각 소비 내역을 다음 JSON 형식의 배열로 정리해주세요:
+            { "date": 날짜, "category": ($categoryList 중 하나), "amount": 금액 }
+        """.trimIndent()
+
+        return@withContext try {
+            val response = requestToChatGPT(prompt)
+            val jsonArray = JSONArray(extractReply(response))
+
+            var successCount = 0
+            val db = FirebaseFirestore.getInstance()
+
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+
+                val date = obj.optString("date")
+                val category = obj.optString("category")
+                val amount = obj.optInt("amount", -1)
+
+                // 유효성 검사
+                if (date.isBlank() || category.isBlank() || amount < 0) continue
+
+                try {
+                    val parsedDate = LocalDate.parse(date) // yyyy-MM-dd 형식 가정
+                    Sobi.add(context, parsedDate, category, amount)
+                    successCount++
+                } catch (e: DateTimeParseException) {
+                    Log.w("GPT", "날짜 파싱 실패: $date")
+                    continue
+                }
+            }
+
+            "총 ${jsonArray.length()}건 중 ${successCount}건의 소비 내역이 저장되었습니다."
+
+        } catch (e: Exception) {
+            Log.e("GPT", "OCR 처리 실패", e)
+            "GPT 분석 실패: ${e.message}"
+        }
+    }
 
     // GPT API 호출 담당 메서드
     private fun requestToChatGPT(prompt: String): String {
