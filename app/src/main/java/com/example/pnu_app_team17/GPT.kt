@@ -1,18 +1,9 @@
 package com.example.pnu_app_team17
 
 import android.content.Context
-import android.widget.Toast
-import android.util.Log
-import com.example.pnu_app_team17.Sobi
-import com.example.pnu_app_team17.filterByMonth
-import com.example.pnu_app_team17.toCsvString
-import com.example.pnu_app_team17.categoryProportions
-import com.example.pnu_app_team17.Category
-import com.google.firebase.firestore.FirebaseFirestore
 import org.json.JSONArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -26,9 +17,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream
 
-
 object GPT {
-    private const val OPENAI_API_KEY = "your-api-key" // TODO: API 키 넣을것
+    private const val OPENAI_API_KEY = "그냥 테스트할때만 하드코딩합시다"
     private const val OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 
     // 소비 조언 메서드
@@ -155,8 +145,16 @@ object GPT {
         val userMessage = JSONObject().apply {
             put("role", "user")
             put("content", JSONArray().apply {
-                put(JSONObject(mapOf("type" to "text", "text" to prompt)))
-                put(JSONObject(mapOf("type" to "image_url", "image_url" to mapOf("url" to "data:image/jpeg;base64,$base64Image"))))
+                put(JSONObject().apply {
+                    put("type", "text")
+                    put("text", prompt)
+                })
+                put(JSONObject().apply {
+                    put("type", "image_url")
+                    put("image_url", JSONObject().apply {
+                        put("url", "data:image/jpeg;base64,$base64Image")
+                    })
+                })
             })
         }
 
@@ -167,7 +165,7 @@ object GPT {
         }
 
         val body = JSONObject().apply {
-            put("model", "gpt-4-vision-preview")
+            put("model", "gpt-4.1")
             put("messages", messages)
             put("max_tokens", 1000)
         }
@@ -188,13 +186,11 @@ object GPT {
     }
     // API가 반환한 JSON을 파싱해 결과를 반환하는 메서드
     private fun extractReply(json: String): String {
-        val obj = JSONObject(json)
-        val content = obj
+        return JSONObject(json)
             .getJSONArray("choices")
             .getJSONObject(0)
             .getJSONObject("message")
             .getString("content")
             .trim()
-        return content
     }
 }
