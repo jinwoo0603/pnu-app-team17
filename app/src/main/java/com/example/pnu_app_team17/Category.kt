@@ -6,5 +6,9 @@ enum class Category(val tag: String) {
     CAFE("카페"),
     TRAFFIC("교통비"),
     SHOP("쇼핑"),
-    SUB("구독")
+    OTHER("기타");
+    companion object {
+        fun fromTag(tag: String): Category? = values().find { it.tag == tag }
+        fun fromIndex(idx: Int): Category = values().getOrElse(idx) { OTHER }
+    }
 }

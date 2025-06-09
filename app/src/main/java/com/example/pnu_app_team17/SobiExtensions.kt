@@ -2,6 +2,8 @@ package com.example.pnu_app_team17
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 import android.graphics.Color
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
@@ -107,4 +109,49 @@ fun List<SobiItem>.showPieChart(pieChart: PieChart) {
         centerText = "소비 비율"
         invalidate() // 차트 새로고침
     }
+}
+
+fun List<SobiItem>.toTFLiteInput(
+    seqLen: Int = 5,
+    amountMin: Float = 0f,
+    amountMax: Float = 50000f
+): Array<Array<FloatArray>> {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA)
+    val seq = this.takeLast(seqLen).padStart(seqLen)
+
+    val input = Array(1) { Array(seqLen) { FloatArray(5) } }
+
+    for (i in seq.indices) {
+        val item = seq[i]
+        val cal = Calendar.getInstance()
+        try {
+            cal.time = dateFormat.parse(item.date) ?: Date()
+        } catch (_: Exception) {
+            cal.time = Date()
+        }
+
+        val dow = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7
+        val day = cal.get(Calendar.DAY_OF_MONTH)
+        val month = cal.get(Calendar.MONTH) + 1
+
+        val normAmount = ((item.amount.toFloat() - amountMin) / (amountMax - amountMin)).coerceIn(0f, 1f)
+        val categoryIdx = Category.values().indexOfFirst { it.tag == item.category }.takeIf { it >= 0 } ?: 0
+        val normDow = dow.toFloat() / 6f
+        val normDay = day.toFloat() / 31f
+        val normMonth = month.toFloat() / 12f
+
+        input[0][i][0] = normAmount
+        input[0][i][1] = categoryIdx.toFloat()
+        input[0][i][2] = normDow
+        input[0][i][3] = normDay
+        input[0][i][4] = normMonth
+    }
+
+    return input
+}
+
+fun List<SobiItem>.padStart(size: Int, filler: SobiItem? = null): List<SobiItem> {
+    val delta = size - this.size
+    val fillerItem = filler ?: this.firstOrNull() ?: SobiItem("dummy", "2025-01-01", "기타", 0)
+    return List(delta.coerceAtLeast(0)) { fillerItem } + this.takeLast(size)
 }
