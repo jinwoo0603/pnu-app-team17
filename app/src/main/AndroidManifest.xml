@@ -25,6 +25,7 @@
         <activity android:name=".ReceiptAddActivity" />
         <activity android:name=".GoalSettingActivity" />
         <activity android:name=".MainActivity" />
+        <activity android:name=".ExchangeActivity" />
 
     </application>
 
