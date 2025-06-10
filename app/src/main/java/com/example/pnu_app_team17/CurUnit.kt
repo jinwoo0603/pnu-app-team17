@@ -31,5 +31,6 @@ enum class CurUnit(val unit: String, val cur_nm: String) {
     SGD("SGD", "싱가포르 달러"),
     THB("THB", "태국 바트"),
     USD("USD", "미국 달러"),
-    XOF("XOF", "씨에프에이 프랑(비씨에이오)")
+    XOF("XOF", "씨에프에이 프랑(비씨에이오)");
+    override fun toString(): String = unit
 }
