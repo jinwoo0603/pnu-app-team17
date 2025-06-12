@@ -65,27 +65,26 @@ class GoalSettingActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // 기존 목표 삭제
+                val oldGoals = db.collection("goals")
+                    .whereEqualTo("id", userId)
+                    .get().await()
+                for (doc in oldGoals.documents) {
+                    db.collection("goals").document(doc.id).delete().await()
+                }
+
                 var totalGoal = 0
-                val prefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
-                val editor = prefs.edit()
 
                 goalAmounts.forEach { (category, amount) ->
                     totalGoal += amount
 
-                    // 🔴 Firestore 저장
                     val goalData = hashMapOf(
                         "id" to userId,
                         "category" to category,
                         "amount" to amount
                     )
                     db.collection("goals").add(goalData).await()
-
-                    // 🔵 SharedPreferences에도 카테고리별 저장
-                    editor.putInt(category, amount)
                 }
-
-                editor.putInt("total_goal", totalGoal)
-                editor.apply() // ✅ 반드시 저장 적용
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@GoalSettingActivity, "목표 금액이 저장되었습니다.", Toast.LENGTH_SHORT).show()
@@ -99,5 +98,4 @@ class GoalSettingActivity : AppCompatActivity() {
             }
         }
     }
-
 }

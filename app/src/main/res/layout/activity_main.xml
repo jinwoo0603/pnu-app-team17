@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".MainActivity">
 
     <!-- 목표/실제 소비액 표시 -->
@@ -45,13 +46,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
-    <!-- 버튼 영역 -->
+    <!-- 🔽 다음 소비 예측 문구 추가 -->
+    <TextView
+        android:id="@+id/predictionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다음 소비 예측 로딩 중..."
+        android:textSize="16sp"
+        android:textStyle="italic"
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toBottomOf="@id/warningText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp"/>
+
+    <!-- 버튼 영역 - 소비 내역, 소비 추가, 목표 설정 -->
     <LinearLayout
+        android:id="@+id/mainButtonGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/warningText"
+        app:layout_constraintTop_toBottomOf="@id/predictionText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp">
@@ -75,12 +91,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="목표 설정"/>
-
-        <Button
-            android:id="@+id/buttonReset"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="초기화"
-            android:layout_marginTop="12dp"/>
     </LinearLayout>
+
+    <!-- 초기화 버튼 아래 위치 -->
+    <Button
+        android:id="@+id/buttonReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="초기화"
+        app:layout_constraintTop_toBottomOf="@id/mainButtonGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
