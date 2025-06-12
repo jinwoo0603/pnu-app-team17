@@ -11,15 +11,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.mikephil.charting.charts.HorizontalBarChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.github.mikephil.charting.components.XAxis
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 class SpendingHistoryActivity : AppCompatActivity() {
 
@@ -38,34 +40,32 @@ class SpendingHistoryActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val spendingItems = Sobi.get(this@SpendingHistoryActivity)
 
-            // 🟦 리사이클러뷰 표시
             val historyList = spendingItems.map {
                 val formattedDate = LocalDate.parse(it.date, dateFormatter).toString()
-                SpendingItem(it.amount, formattedDate, "가게명 미지정", it.category)
+                SpendingItem(it.amount, formattedDate, it.category)
             }
             recyclerView.adapter = SpendingAdapter(historyList)
 
-            // 🟥 카테고리별 실제 소비 계산
             val actualPerCategory: Map<String, Float> = spendingItems
                 .groupBy { it.category }
                 .mapValues { (_, items) -> items.sumOf { it.amount }.toFloat() }
 
-            // 🟨 목표 소비 SharedPreferences에서 불러오기
-            val prefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
-            val goalPerCategory: Map<String, Float> = Category.values().associate {
-                val amount = prefs.getInt(it.tag, 0)
-                it.tag to amount.toFloat()
-            }
-            // 🔍 SharedPreferences에서 불러온 목표 금액 로그 확인
-            goalPerCategory.forEach { (category, amount) ->
-                android.util.Log.d("GOAL_PREFS", "카테고리: $category, 목표 금액: $amount")
+            val db = FirebaseFirestore.getInstance()
+            val userId = Auth.currentId(this@SpendingHistoryActivity) ?: return@launch
+            val goalSnapshot = db.collection("goals")
+                .whereEqualTo("id", userId)
+                .get().await()
+
+            val goalPerCategory: Map<String, Float> = goalSnapshot.documents.associate {
+                val cat = it.getString("category") ?: ""
+                val amount = it.getLong("amount")?.toFloat() ?: 0f
+                cat to amount
             }
 
-
-            // 🟩 모든 카테고리 모음
+            // 소비 데이터만 있는 경우에도 그래프가 그려지도록 조건 제거
             val allCategories = (actualPerCategory.keys + goalPerCategory.keys).distinct()
+                .sorted()
 
-            // 그래프 데이터 만들기
             val goalEntries = ArrayList<BarEntry>()
             val actualEntries = ArrayList<BarEntry>()
             val categoryLabels = ArrayList<String>()
@@ -86,25 +86,41 @@ class SpendingHistoryActivity : AppCompatActivity() {
             }
 
             val barData = BarData(goalDataSet, actualDataSet).apply {
-                barWidth = 0.3f
+                barWidth = 0.35f
             }
 
-            barChart.data = barData
-            barChart.groupBars(0f, 0.4f, 0.05f)
-            barChart.description = Description().apply { text = "" }
-            barChart.xAxis.valueFormatter = IndexAxisValueFormatter(categoryLabels)
-            barChart.xAxis.granularity = 1f
-            barChart.xAxis.setCenterAxisLabels(true)
-            barChart.setFitBars(true)
-            barChart.invalidate()
+            barChart.apply {
+                data = barData
+                description = Description().apply { text = "" }
+                setFitBars(true)
+                setScaleEnabled(false)
+                setPinchZoom(false)
+                animateY(1000)
+
+                xAxis.apply {
+                    valueFormatter = IndexAxisValueFormatter(categoryLabels)
+                    position = XAxis.XAxisPosition.BOTTOM
+                    granularity = 1f
+                    setDrawGridLines(false)
+                    labelCount = categoryLabels.size
+                    axisMinimum = -0.5f
+                    axisMaximum = categoryLabels.size - 0.5f
+                    setCenterAxisLabels(true)
+                }
+
+                axisLeft.axisMinimum = 0f
+                axisRight.isEnabled = false
+
+                groupBars(0f, 0.4f, 0.05f)
+                invalidate()
+            }
         }
     }
 }
 
-// 소비 항목 데이터 클래스
-data class SpendingItem(val amount: Int, val date: String, val store: String, val category: String)
+// 데이터 클래스
+data class SpendingItem(val amount: Int, val date: String, val category: String)
 
-// 어댑터
 class SpendingAdapter(private val items: List<SpendingItem>) : RecyclerView.Adapter<SpendingViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SpendingViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_spending, parent, false)
@@ -122,7 +138,6 @@ class SpendingViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun bind(item: SpendingItem) {
         itemView.findViewById<TextView>(R.id.amountText).text = "%,d원".format(item.amount)
         itemView.findViewById<TextView>(R.id.dateText).text = item.date
-        itemView.findViewById<TextView>(R.id.storeText).text = item.store
         itemView.findViewById<TextView>(R.id.categoryText).text = item.category
     }
 }

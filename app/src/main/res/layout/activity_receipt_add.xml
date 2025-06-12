@@ -15,9 +15,9 @@
         android:text="소비 추가"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="24dp" />
 
-    <!-- 영수증 이미지 표시 영역 (초기에는 빈 칸) -->
+    <!-- 영수증 이미지 표시 영역 -->
     <ImageView
         android:id="@+id/receiptImage"
         android:layout_width="250dp"
@@ -32,20 +32,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="카메라로 영수증 촬영하기"
-        android:layout_marginBottom="12dp"/>
-
-    <!-- 버튼: 갤러리에서 가져오기 -->
+        android:layout_marginBottom="12dp" />
+    <!-- 버튼:갤러리에서 불러오기 -->
     <Button
         android:id="@+id/buttonGallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="갤러리에서 영수증 가져오기" />
-    <!-- 버튼: 임의 소비 추가 -->
+        android:text="갤러리에서 영수증 가져오기"
+        android:layout_marginBottom="12dp" />
+
+
+    <!-- 버튼: 소비 추가하기 -->
     <Button
-        android:id="@+id/buttonDummyAdd"
+        android:id="@+id/buttonAddReceipt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="임의 소비 추가"
-        android:layout_marginTop="24dp"/>
+        android:text="소비 추가하기"
+        android:enabled="false"
+        android:layout_marginTop="24dp" />
 
 </LinearLayout>
