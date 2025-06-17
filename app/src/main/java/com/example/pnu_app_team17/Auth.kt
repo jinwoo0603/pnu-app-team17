@@ -38,13 +38,6 @@ object Auth {
 
     //Auth.signin(this, "id", "pw")
     fun signin(context: Context, id: String, pw: String) {
-        // ✅ 테스트 계정 예외처리 (Firebase 없이 로그인 허용)
-        if (id == "test" && pw == "1234") {
-            saveToPreferences(context, id)
-            Toast.makeText(context, "테스트 계정으로 로그인됨", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         val db: FirebaseFirestore = FirebaseFirestore.getInstance()
         db.collection("users")
             .whereEqualTo("id", id)

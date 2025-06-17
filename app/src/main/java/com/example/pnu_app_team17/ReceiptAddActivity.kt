@@ -2,6 +2,7 @@ package com.example.pnu_app_team17
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -12,29 +13,35 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.io.InputStream
-import java.time.LocalDate
 
 class ReceiptAddActivity : AppCompatActivity() {
 
     private lateinit var imageView: ImageView
-    private var selectedImageUri: Uri? = null
+    private var capturedBitmap: Bitmap? = null
 
+    // 카메라 촬영 결과 처리
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val imageBitmap = result.data?.extras?.get("data") as? android.graphics.Bitmap
+            val imageBitmap = result.data?.extras?.get("data") as? Bitmap
             imageBitmap?.let {
+                capturedBitmap = it
                 imageView.setImageBitmap(it)
+                findViewById<Button>(R.id.buttonAddReceipt).isEnabled = true
             }
         }
     }
 
+    // 갤러리 선택 결과 처리
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
-            selectedImageUri = it
             val inputStream: InputStream? = contentResolver.openInputStream(it)
             val bitmap = BitmapFactory.decodeStream(inputStream)
+            capturedBitmap = bitmap
             imageView.setImageBitmap(bitmap)
+            findViewById<Button>(R.id.buttonAddReceipt).isEnabled = true
         }
     }
 
@@ -54,35 +61,24 @@ class ReceiptAddActivity : AppCompatActivity() {
             galleryLauncher.launch("image/*")
         }
 
-        // ✅ 임의 소비 추가 버튼 클릭 시 하드코딩 소비 추가
-        // 나중에 삭제할거임
-        findViewById<Button>(R.id.buttonDummyAdd).setOnClickListener {
-            val dummySpendings = listOf(
-                Triple(LocalDate.now(), "식비", 12000),
-                Triple(LocalDate.now(), "카페", 4500),
-                Triple(LocalDate.now(), "교통비", 3000),
-                Triple(LocalDate.now(), "쇼핑", 29000),
-                Triple(LocalDate.now(), "구독", 9900)
-            )
-
-            val prefs = getSharedPreferences("spending_prefs", MODE_PRIVATE)
-            var currentTotal = prefs.getInt("total_spent", 0)
-
-            dummySpendings.forEach { (date, category, amount) ->
-                Sobi.add(this, date, category, amount)
-                currentTotal += amount
+        findViewById<Button>(R.id.buttonAddReceipt).setOnClickListener {
+            val bitmap = capturedBitmap
+            if (bitmap == null) {
+                Toast.makeText(this, "이미지를 먼저 선택하거나 촬영하세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
 
-            prefs.edit().putInt("total_spent", currentTotal).apply()
+            lifecycleScope.launch {
+                val resultMessage = GPT.ocr(this@ReceiptAddActivity, bitmap)
+                Toast.makeText(this@ReceiptAddActivity, resultMessage, Toast.LENGTH_LONG).show()
 
-            Toast.makeText(this, "${dummySpendings.size}건의 소비가 추가되었습니다.", Toast.LENGTH_SHORT).show()
-
-            // 메인 화면으로 이동
-            val intent = Intent(this, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-            finish()
+                if (resultMessage.contains("저장")) {
+                    val intent = Intent(this@ReceiptAddActivity, MainActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    finish()
+                }
+            }
         }
-
     }
 }

@@ -3,6 +3,7 @@ package com.example.pnu_app_team17
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -19,12 +20,16 @@ import com.github.mikephil.charting.data.PieEntry
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.support.common.FileUtil
+import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var pieChart: PieChart
     private lateinit var budgetText: TextView
     private lateinit var warningText: TextView
+    private lateinit var predictionText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,19 +45,41 @@ class MainActivity : AppCompatActivity() {
         pieChart = findViewById(R.id.pieChart)
         budgetText = findViewById(R.id.budgetText)
         warningText = findViewById(R.id.warningText)
-
-        val goalPrefs = getSharedPreferences("goal_prefs", MODE_PRIVATE)
-        val goalAmount = goalPrefs.getInt("total_goal", 0)
-
-        val spendPrefs = getSharedPreferences("spending_prefs", MODE_PRIVATE)
-        val actualAmount = spendPrefs.getInt("total_spent", 0)
-
-        budgetText.text = "목표 소비액 : %,d원\n실제 소비액 : %,d원".format(goalAmount, actualAmount)
+        predictionText = findViewById(R.id.predictionText)
 
         lifecycleScope.launch {
+            val userId = Auth.currentId(this@MainActivity)
+            if (userId == null) {
+                Toast.makeText(this@MainActivity, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val db = FirebaseFirestore.getInstance()
+
+            // 🔹 목표 금액 계산
+            val goalSnapshot = db.collection("goals")
+                .whereEqualTo("id", userId)
+                .get()
+                .await()
+            val totalGoal = goalSnapshot.documents.sumOf {
+                it.getLong("amount")?.toInt() ?: 0
+            }
+
+            // 🔹 소비 금액 계산
+            val sobiSnapshot = db.collection("sobi")
+                .whereEqualTo("id", userId)
+                .get()
+                .await()
+            val totalSpent = sobiSnapshot.documents.sumOf {
+                it.getLong("amount")?.toInt() ?: 0
+            }
+
+            budgetText.text = "목표 소비액 : %,d원\n실제 소비액 : %,d원".format(totalGoal, totalSpent)
+
             val items = Sobi.get(this@MainActivity)
             showPieChart(items)
             showWarningIfOverspent()
+            showSpendingPrediction(items)
         }
 
         findViewById<Button>(R.id.buttonHistory).setOnClickListener {
@@ -67,18 +94,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, GoalSettingActivity::class.java))
         }
 
-        // ### 초기화 코드 곡 삭제 예정ㅅ
         findViewById<Button>(R.id.buttonReset).setOnClickListener {
             val userId = Auth.currentId(this)
             if (userId == null) {
                 Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
-            getSharedPreferences("spending_prefs", MODE_PRIVATE)
-                .edit().putInt("total_spent", 0).apply()
-            getSharedPreferences("goal_prefs", MODE_PRIVATE)
-                .edit().putInt("total_goal", 0).apply()
 
             val db = FirebaseFirestore.getInstance()
             db.collection("sobi").whereEqualTo("id", userId).get().addOnSuccessListener { snapshot ->
@@ -99,6 +120,7 @@ class MainActivity : AppCompatActivity() {
                 invalidate()
             }
             warningText.text = "초기화 완료"
+            predictionText.text = ""
             Toast.makeText(this, "모든 소비 데이터 및 목표가 초기화되었습니다.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -119,11 +141,11 @@ class MainActivity : AppCompatActivity() {
             sliceSpace = 2f
             valueTextSize = 12f
             colors = listOf(
-                Color.parseColor("#FFA726"), // 주황
-                Color.parseColor("#66BB6A"), // 녹색
-                Color.parseColor("#42A5F5"), // 파랑
-                Color.parseColor("#EF5350"), // 빨강
-                Color.parseColor("#AB47BC")  // 보라
+                Color.parseColor("#FFA726"),
+                Color.parseColor("#66BB6A"),
+                Color.parseColor("#42A5F5"),
+                Color.parseColor("#EF5350"),
+                Color.parseColor("#AB47BC")
             )
         }
 
@@ -167,6 +189,20 @@ class MainActivity : AppCompatActivity() {
         } else {
             val overText = overSpent.joinToString(", ")
             "이달에는 $overText 항목에서 초과 지출하였습니다."
+        }
+    }
+
+    private fun showSpendingPrediction(items: List<SobiItem>) {
+        try {
+            val model = FileUtil.loadMappedFile(this, "spending_predictor_model.tflite")
+            val interpreter = Interpreter(model)
+            val predictor = SpendingPredictor(interpreter)
+            val prediction = predictor.predictNextSobi(items)
+
+            predictionText.text = "다음 소비 예측: ${prediction.date} | ${prediction.category.tag} | %,d원".format(prediction.amount)
+        } catch (e: Exception) {
+            predictionText.text = "소비 예측 불가"
+            Log.e("PredictionError", "예측 실패: ${e.message}")
         }
     }
 }
