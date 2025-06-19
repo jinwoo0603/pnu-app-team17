@@ -8,6 +8,10 @@ import org.json.JSONArray
 import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.*
+
 
 //환율 API 처리 object
 object Exchange {
@@ -16,6 +20,23 @@ object Exchange {
     private const val EXCHANGE_DATE_KEY = "exchange_date"
     private const val EXCHANGE_VALUES_KEY = "exchange_values"
     private const val API_KEY = "i11e3uF8vWmnCA2bbmkVgSum4DhlbHp8" // 그냥 API 키 깔게요 어차피 유료도 아닌데
+
+    private fun trustAllHosts() {
+        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        })
+
+        try {
+            val sc = SSLContext.getInstance("SSL")
+            sc.init(null, trustAllCerts, SecureRandom())
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.socketFactory)
+            HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -27,6 +48,7 @@ object Exchange {
         val urlStr =
             "https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey=$API_KEY&searchdate=$dateStr&data=AP01"
 
+        trustAllHosts()
         val response = withContext(Dispatchers.IO) {
             URL(urlStr).readText()
         }
