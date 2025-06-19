@@ -1,6 +1,7 @@
 package com.example.pnu_app_team17
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -23,7 +24,6 @@ class ExchangeActivity : AppCompatActivity() {
         buttonConvert = findViewById(R.id.button_convert)
         textResult = findViewById(R.id.text_result)
 
-        // CurUnit enum을 Spinner에 연결
         val currencyList = CurUnit.values().toList()
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencyList.map { it.name })
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -45,10 +45,16 @@ class ExchangeActivity : AppCompatActivity() {
 
             val selectedCurrency = CurUnit.values()[spinner.selectedItemPosition]
 
-            // 코루틴으로 Exchange.get 호출
             lifecycleScope.launch {
+                val today = LocalDate.now()
                 try {
-                    val won = Exchange.get(this@ExchangeActivity, LocalDate.now(), selectedCurrency, amount)
+                    val won = try {
+                        Exchange.get(this@ExchangeActivity, today, selectedCurrency, amount)
+                    } catch (e: Exception) {
+                        Log.w("ExchangeActivity", "오늘 환율 실패, 전날 fallback 시도: ${e.message}")
+                        Exchange.get(this@ExchangeActivity, today.minusDays(1), selectedCurrency, amount)
+                    }
+
                     textResult.text = "원화 금액: ${won}원"
                 } catch (e: Exception) {
                     e.printStackTrace()
