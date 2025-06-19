@@ -18,7 +18,7 @@ import okhttp3.Request
 import java.io.ByteArrayOutputStream
 
 object GPT {
-    private const val OPENAI_API_KEY = "키"
+    private const val OPENAI_API_KEY = "하드코딩"
     private const val OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 
     // 소비 조언 메서드

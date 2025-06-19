@@ -1,54 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:layout_height="match_parent">
 
-    <!-- 제목 -->
-    <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/mainContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="소비 추가"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_centerInParent="true"
+        android:gravity="center">
 
-    <!-- 영수증 이미지 표시 영역 -->
-    <ImageView
-        android:id="@+id/receiptImage"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        android:scaleType="centerCrop"
-        android:layout_marginBottom="24dp"
-        android:background="#CCCCCC" />
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="소비 추가"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
 
-    <!-- 버튼: 카메라 촬영 -->
-    <Button
-        android:id="@+id/buttonCamera"
-        android:layout_width="wrap_content"
+        <ImageView
+            android:id="@+id/receiptImage"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="24dp"
+            android:background="#CCCCCC" />
+
+        <Button
+            android:id="@+id/buttonCamera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="카메라로 영수증 촬영하기"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/buttonGallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="갤러리에서 영수증 가져오기"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/buttonManualAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="소비 직접추가하기"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/buttonAddReceipt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="소비 추가하기"
+            android:enabled="false"
+            android:layout_marginTop="24dp" />
+    </LinearLayout>
+
+    <!-- 상단 오른쪽 버튼들 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="카메라로 영수증 촬영하기"
-        android:layout_marginBottom="12dp" />
-    <!-- 버튼:갤러리에서 불러오기 -->
-    <Button
-        android:id="@+id/buttonGallery"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="갤러리에서 영수증 가져오기"
-        android:layout_marginBottom="12dp" />
+        android:orientation="horizontal"
+        android:gravity="end">
 
-
-    <!-- 버튼: 소비 추가하기 -->
-    <Button
-        android:id="@+id/buttonAddReceipt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="소비 추가하기"
-        android:enabled="false"
-        android:layout_marginTop="24dp" />
-
-</LinearLayout>
+        <Button
+            android:id="@+id/buttonExchangeInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="환율 정보 확인" />
+    </LinearLayout>
+</RelativeLayout>

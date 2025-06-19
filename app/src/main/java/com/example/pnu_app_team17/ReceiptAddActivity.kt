@@ -7,10 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -22,7 +19,6 @@ class ReceiptAddActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
     private var capturedBitmap: Bitmap? = null
 
-    // 카메라 촬영 결과 처리
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val imageBitmap = result.data?.extras?.get("data") as? Bitmap
@@ -34,7 +30,6 @@ class ReceiptAddActivity : AppCompatActivity() {
         }
     }
 
-    // 갤러리 선택 결과 처리
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             val inputStream: InputStream? = contentResolver.openInputStream(it)
@@ -79,6 +74,14 @@ class ReceiptAddActivity : AppCompatActivity() {
                     finish()
                 }
             }
+        }
+
+        findViewById<Button>(R.id.buttonExchangeInfo).setOnClickListener {
+            startActivity(Intent(this, ExchangeActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.buttonManualAdd).setOnClickListener {
+            startActivity(Intent(this, ManualAddActivity::class.java))
         }
     }
 }

@@ -24,6 +24,8 @@ import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
 import kotlin.jvm.java
 
+
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var pieChart: PieChart
@@ -79,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             val items = Sobi.get(this@MainActivity)
             showPieChart(items)
             showWarningIfOverspent()
-            showSpendingPrediction(items)
+            showSpendingPrediction(items.sortedByDate())
         }
 
         findViewById<Button>(R.id.buttonHistory).setOnClickListener {
@@ -194,8 +196,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSpendingPrediction(items: List<SobiItem>) {
         try {
-            val model = FileUtil.loadMappedFile(this, "spending_predictor_model.tflite")
-            val interpreter = Interpreter(model)
+            val options = Interpreter.Options()
+            val modelBuffer = FileUtil.loadMappedFile(this, "spending_predictor_model.tflite")
+            val interpreter = Interpreter(modelBuffer, options)
             val predictor = SpendingPredictor(interpreter)
             val prediction = predictor.predictNextSobi(items)
 
@@ -205,4 +208,5 @@ class MainActivity : AppCompatActivity() {
             Log.e("PredictionError", "예측 실패: ${e.message}")
         }
     }
+
 }
